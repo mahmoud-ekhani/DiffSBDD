@@ -81,8 +81,10 @@ def compute_druglikeness(ligand_dict):
         the same ligand dictionary with additional QED values
     """
     print("Computing QED values...")
-    for p, m in tqdm([(p, m) for c in ligand_dict for p in ligand_dict[c]
-                      for m in ligand_dict[c][p]]):
+    for p, m in tqdm([
+        (p, m) for c in ligand_dict.values()
+        for p, m in c.items()
+    ]):
         mol = Chem.MolFromSmiles(m[2])
         if mol is None:
             mol_id = f'{p}_{m}'
@@ -157,7 +159,7 @@ def split_by_ec_number(data_list, n_val, n_test, ec_level=1):
         if sum([examples_per_class[x] for x in test_classes]) + num <= n_test:
             test_classes.add(c)
 
-    # remaining classes belong to test set
+    # remaining classes belong to train set
     train_classes = {x for x in examples_per_class if
                      x not in val_classes and x not in test_classes}
 
@@ -412,7 +414,7 @@ def saveall(filename, pdb_and_mol_ids, lig_coords, lig_one_hot, lig_mask,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('basedir', type=Path)
+    parser.add_argument('--basedir', type=Path, default='data/moad')
     parser.add_argument('--outdir', type=Path, default=None)
     parser.add_argument('--qed_thresh', type=float, default=0.3)
     parser.add_argument('--max_occurences', type=int, default=50)
@@ -614,7 +616,7 @@ if __name__ == '__main__':
     # Convert bond length dictionaries to arrays for batch processing
     bonds1, bonds2, bonds3 = get_bond_length_arrays(atom_dict)
 
-    # Get bond length definitions for Lennard-Jones potential
+
     rm_LJ = get_lennard_jones_rm(atom_dict)
 
     # Get histograms of ligand and pocket node types
